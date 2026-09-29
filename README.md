@@ -142,10 +142,10 @@ python run_tests.py
 ```
 
 ```
-Ran 555 tests -- OK
+Ran 849 tests -- OK (suite has grown since; run `python -m pytest -q` for the current count)
 ```
 
-555 tests across 11 files. Zero regressions policy.
+849 tests (as of 2026-09-29; grown from 555). Zero regressions policy.
 
 ---
 
@@ -155,7 +155,7 @@ Ran 555 tests -- OK
 judge_engine/v1/     Three-judge deterministic evaluation engine
 api/                 Receipts, replay, Merkle, anchoring, key management
 scripts/             titan_verify.py, ci_evaluate.py, seal_daily_root.py
-tests/               555 tests + test vectors TV1/TV2/TV3
+tests/               849 tests + test vectors TV1/TV2/TV3
 r-package/titangate  R package -- wraps titan-verify CLI
 examples/            Sample repo integration
 docs/                SPEC.md, architecture, auditor docs
