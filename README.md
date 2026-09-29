@@ -7,7 +7,7 @@ Every code change evaluated by Titan Gate produces a **signed, chained, verifiab
 ```json
 {
   "receipt_id": "3ae452f4-3a75-44fb-899f-cef8f0fd79b0",
-  "tenant_id": "Rehanrana11",
+  "tenant_id": "acme-team",
   "verdict": "PASS",
   "composite_score": 0.88,
   "prev_receipt_hash": "GENESIS",
@@ -29,7 +29,7 @@ titan-verify receipt.json --key <hex>
 
 **GitHub Actions**
 ```yaml
-- uses: Rehanrana11/titan-gate/.github/actions/verify@main
+- uses: Rmasood1122/titan-gate/.github/actions/verify@main
   with:
     receipt: .titan/receipts/latest.json
     key: ${{ secrets.TITAN_SIGNING_KEY }}
