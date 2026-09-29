@@ -1,0 +1,69 @@
+{
+  "schema_version": "receipt_v1",
+  "receipt_id": "3ae452f4-3a75-44fb-899f-cef8f0fd79b0",
+  "tenant_id": "Rehanrana11",
+  "repo": "titan-gate",
+  "repo_full_name": "Rehanrana11/titan-gate",
+  "pr_number": 1,
+  "pr_title": "Health check",
+  "branch": "main",
+  "base_branch": "main",
+  "commit_sha": "abcdef1234567890abcdef1234567890abcdef12",
+  "evaluated_at": "2026-03-06T01:42:49Z",
+  "root_date": "2026-03-06",
+  "engine_version": "1.0.0",
+  "contract_version": "1.0.0",
+  "scoring_formula_version": "1.0.0",
+  "policy_version": "1.0.0",
+  "merkle_algorithm": "merkle_v1",
+  "signing_version": "hmac-sha256-v1",
+  "structural_score": 1.0,
+  "semantic_score": 0.7,
+  "composite_score": 0.88,
+  "verdict": "PASS",
+  "hard_violations": [],
+  "process_violations": [],
+  "artifact_hash": "4f31e4acb8d6308faad8e61b7cce91e3db2520593c051bc75e9ef63422e8f300",
+  "scope_hash": "bfa2a0832cf9a5c34aaa3d7c7610eedda5a66af607b06e0369e0e3bf14d255c8",
+  "provenance_hash": "f5c3728932b5dcc478e3336b43534bc3a24c04b534d0da26371e28256e8ecd7c",
+  "prev_receipt_hash": "GENESIS",
+  "ai_attributed": false,
+  "soc2_controls": [
+    {
+      "control_id": "CC6.1",
+      "description": "Logical access security",
+      "satisfied": true
+    },
+    {
+      "control_id": "CC6.2",
+      "description": "Authentication and credentials",
+      "satisfied": true
+    },
+    {
+      "control_id": "CC7.1",
+      "description": "System monitoring and error detection",
+      "satisfied": true
+    },
+    {
+      "control_id": "CC7.2",
+      "description": "Incident response",
+      "satisfied": true
+    },
+    {
+      "control_id": "CC8.1",
+      "description": "Change management",
+      "satisfied": true
+    }
+  ],
+  "evaluation_manifest": {
+    "engine_version": "1.0.0",
+    "contract_version": "1.0.0",
+    "scoring_formula_version": "1.0.0",
+    "policy_version": "1.0.0",
+    "merkle_algorithm": "merkle_v1",
+    "signing_version": "hmac-sha256-v1",
+    "evaluated_at": "2026-03-06T01:42:49Z"
+  },
+  "receipt_hash": "603e7657c1a24f7b0ad3c5249f4e7fb8981401eeb026b8b415eeff18ab993cfe",
+  "signature": "df71d8046faaa319c4386bc96819cea22993dd04e6cf6b0bd673c872b25663c6"
+}

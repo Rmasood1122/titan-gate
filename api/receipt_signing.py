@@ -4,14 +4,7 @@ import json
 from typing import Any, Dict
 
 SIGNING_VERSION = "hmac-sha256-v1"
-EXCLUSION_FIELDS = {"signature", "receipt_hash", "prev_receipt_hash_verified", "_debug", "_meta"}
-
-
-def canonical_bytes(receipt: Dict[str, Any]) -> bytes:
-    filtered = {k: v for k, v in receipt.items() if k not in EXCLUSION_FIELDS}
-    return json.dumps(
-        filtered, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
+from titan_gate.canonical import EXCLUSION_FIELDS, canonical_bytes  # noqa: F401
 
 
 def compute_receipt_hash(receipt: Dict[str, Any]) -> str:

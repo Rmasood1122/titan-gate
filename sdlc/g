@@ -1,0 +1,74 @@
+#!/bin/sh
+# g -- portable task runner. Replaces the Makefile, which assumed GNU make and
+# therefore did not exist on Git Bash / MINGW64.
+#
+#   ./g gate                 every gate, current state
+#   ./g predict "question?"  log a prediction before measuring
+#   ./g record 1 "actual"    fill in what happened
+#   ./g label [N]            label N cases (default 25), resumable
+#   ./g status               scoreboard
+#   ./g seal                 freeze the holdout once at floor
+#   ./g validate FILE.json   check a design response against the contract
+#   ./g doctor               what interpreter am I using, and does it work
+
+set -e
+cd "$(dirname "$0")"
+
+# --- interpreter detection -------------------------------------------------
+# Windows ships a python.exe App Execution Alias that prints a Store message
+# and exits nonzero. Detection must run the thing, not just find it on PATH.
+PY=""
+for c in python3 python py; do
+  if command -v "$c" >/dev/null 2>&1; then
+    if [ "$c" = "py" ]; then
+      if py -3 -c "print(1)" >/dev/null 2>&1; then PY="py -3"; break; fi
+    elif "$c" -c "print(1)" >/dev/null 2>&1; then
+      PY="$c"; break
+    fi
+  fi
+done
+if [ -z "$PY" ]; then
+  echo "no working python found. Tried python3, python, py -3." >&2
+  echo "On Windows install from python.org (tick 'Add python.exe to PATH')," >&2
+  echo "then reopen Git Bash. 'python' from the Microsoft Store alias does not count." >&2
+  exit 127
+fi
+
+# Interactive prompts from python need a real tty. mintty does not give one to
+# native Windows binaries, so input() hangs. winpty bridges it.
+WINPTY=""
+case "$(uname -s 2>/dev/null)" in
+  MINGW*|MSYS*|CYGWIN*) command -v winpty >/dev/null 2>&1 && WINPTY="winpty" ;;
+esac
+
+cmd="${1:-gate}"
+shift 2>/dev/null || true
+
+case "$cmd" in
+  doctor)
+    echo "interpreter : $PY"
+    $PY -c "import sys; print('version     :', sys.version.split()[0]); print('platform    :', sys.platform)"
+    echo "winpty      : ${WINPTY:-not needed}"
+    echo "repo        : $(pwd)"
+    ;;
+  predict)  [ -n "$1" ] || { echo "usage: ./g predict \"your question?\"" >&2; exit 2; }
+            if [ -n "$2" ]; then $PY evals/predict.py ask "$1" --prediction "$2"; else $WINPTY $PY evals/predict.py ask "$1"; fi ;;
+  record)   [ -n "$2" ] || { echo "usage: ./g record <id> \"actual\"" >&2; exit 2; }
+            $PY evals/predict.py record "$1" --actual "$2" ;;
+  label)    $WINPTY $PY evals/label.py --limit "${1:-25}" ;;
+  seal)     $PY evals/label.py --seal ;;
+  validate) [ -n "$1" ] || { echo "usage: ./g validate response.json" >&2; exit 2; }
+            $PY evals/validate_response.py "$1" ;;
+  status)
+    echo "== prediction log =="; $PY evals/predict.py status || true
+    echo; echo "== golden set ==";  $PY evals/label.py --status || true
+    ;;
+  gate)
+    $PY evals/validate_response.py --selftest >/dev/null 2>&1 \
+      && echo "validator      : live" || echo "validator      : DEAD"
+    $PY evals/label.py --status   | tail -1 || true
+    $PY evals/predict.py status   | tail -1 || true
+    $PY evals/label.py --verify-seal 2>/dev/null || echo "holdout        : not sealed yet"
+    ;;
+  *) echo "unknown command '$cmd'. Run ./g with no arguments for the list." >&2; exit 2 ;;
+esac

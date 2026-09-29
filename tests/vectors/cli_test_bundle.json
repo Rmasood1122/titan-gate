@@ -1,6 +1,6 @@
 {
   "schema": "proof_bundle_v1",
-  "generated_at": "2026-03-05T05:03:16Z",
+  "generated_at": "2026-03-05T11:07:17Z",
   "engine_version": "1.0.0",
   "contract_version": "1.0.0",
   "merkle_algorithm": "merkle_v1",
@@ -88,5 +88,5 @@
     "step4": "Compare computed root with merkle_root field",
     "step5": "Compare merkle_root with anchor.merkle_root"
   },
-  "bundle_hash": "0c8c96d4dfd338f74d54c8e64849c914b37313cd768ad0c22603a0d30b97e6f8"
+  "bundle_hash": "36a4f37401beb8fd6f16c680fe3d0a1daf8435c3b95fa00c3ecab71083f725e5"
 }

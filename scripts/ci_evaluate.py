@@ -4,10 +4,12 @@ import json
 import os
 import sys
 import subprocess
+import pathlib
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from judge_engine.v1.engine import evaluate
+from titan_gate.chain_state import latest_receipt_hash
 
 
 def get_changed_files(base_branch):
@@ -32,6 +34,32 @@ def get_artifact(changed_files):
             except Exception:
                 pass
     return "\n\n".join(parts) if parts else "# No Python files changed"
+
+
+def save_receipt(receipt, output_arg):
+    """
+    Save receipt to two locations:
+      1. .titan/receipts/{root_date}/{receipt_id}.json  (canonical chain location)
+      2. --output path (default: receipt.json)          (GitHub Actions artifact)
+    """
+    receipt_id = receipt.get("receipt_id", "unknown")
+    root_date = receipt.get("root_date", "unknown")
+
+    # Canonical chain path
+    chain_path = pathlib.Path(".titan") / "receipts" / root_date / f"{receipt_id}.json"
+    chain_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(chain_path, "w", encoding="utf-8") as f:
+        json.dump(receipt, f, indent=2)
+    print(f"Receipt chained: {chain_path}")
+
+    # Artifact path for GitHub Actions upload
+    artifact_path = pathlib.Path(output_arg)
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(artifact_path, "w", encoding="utf-8") as f:
+        json.dump(receipt, f, indent=2)
+    print(f"Receipt saved  : {artifact_path}")
+
+    return chain_path
 
 
 def post_pr_comment(token, repo, pr_number, receipt):
@@ -69,7 +97,7 @@ def post_pr_comment(token, repo, pr_number, receipt):
                 body += f"- `[{v.get('code')}]` {v.get('description')}\n"
             body += "\n"
 
-        body += f"*Verified by [Titan Gate](https://github.com/Rehanrana11/titan-gate) — cryptographic change control*"
+        body += "*Verified by [Titan Gate](https://github.com/Rehanrana11/titan-gate) — cryptographic change control*"
 
         data = json.dumps({"body": body}).encode()
         url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
@@ -100,7 +128,11 @@ def main():
     parser.add_argument("--output", default="receipt.json")
     args = parser.parse_args()
 
-    key = os.environ.get("TITAN_SIGNING_KEY", "0" * 64)
+    key = os.environ.get("TITAN_SIGNING_KEY")
+    if not key:
+        raise SystemExit(
+            "TITAN_SIGNING_KEY not set — refusing to sign. A receipt "
+            "under a known-default key is worse than no receipt (Rule 1).")
     token = os.environ.get("GITHUB_TOKEN", "")
 
     changed_files = get_changed_files(args.base)
@@ -125,11 +157,10 @@ def main():
         base_branch=args.base,
         commit_sha=args.sha,
         key_hex=key,
-        prev_receipt_hash="GENESIS",
+        prev_receipt_hash=latest_receipt_hash(pathlib.Path(".titan") / "receipts"),
     )
 
-    with open(args.output, "w") as f:
-        json.dump(receipt, f, indent=2)
+    chain_path = save_receipt(receipt, args.output)
 
     verdict = receipt.get("verdict")
     score = receipt.get("composite_score")
@@ -138,7 +169,6 @@ def main():
     print(f"Verdict      : {verdict}")
     print(f"Score        : {score}")
     print(f"Receipt ID   : {receipt_id}")
-    print(f"Receipt saved: {args.output}")
 
     post_pr_comment(token, args.repo, args.pr, receipt)
 

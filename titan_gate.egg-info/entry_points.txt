@@ -1,0 +1,3 @@
+[console_scripts]
+titan-gate = titan_gate.verify:main
+titan-verify = titan_gate.verify:main

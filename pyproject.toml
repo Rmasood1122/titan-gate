@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "titan-gate"
+version = "1.0.1"
+description = "Cryptographic receipt verification for AI-assisted code changes"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [{name = "Rehan Masood", email = "rmasoodx22@gmail.com"}]
+keywords = ["cryptography", "audit", "SOC2", "AI", "verification", "receipts", "compliance"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security :: Cryptography",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+titan-verify = "titan_gate.verify:main"
+titan-gate = "titan_gate.verify:main"
+
+
+[project.urls]
+Homepage = "https://github.com/Rehanrana11/titan-gate"
+Repository = "https://github.com/Rehanrana11/titan-gate"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["titan_gate*"]
+
+[tool.mutmut]
+paths_to_mutate = [
+    "titan_gate/verify.py",
+    "titan_gate/trs2_writer.py",
+    "titan_gate/anchor_v2.py",
+    "titan_gate/tsa_verify.py",
+    "titan_gate/canonical.py",
+]
+tests_dir = "tests/"

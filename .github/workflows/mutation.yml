@@ -1,0 +1,33 @@
+name: Mutation Testing
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 15 2,5,8,11 *"
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install deps + mutmut
+        run: |
+          pip install -r requirements.txt
+          pip install mutmut
+      - name: Run mutation testing (survivors OK, silent no-op NOT)
+        run: |
+          mutmut run 2>&1 | tee mutmut_run.log || true
+          # Gate against verification theater: if mutmut generated no
+          # mutants, this run measured nothing and must be RED.
+          if ! grep -qiE "[0-9]+/[0-9]+" mutmut_run.log; then
+            echo "::error::mutmut produced no mutant tally — it did not run. Config or version issue."
+            exit 1
+          fi
+      - name: Report — survivors
+        if: always()
+        run: |
+          echo "=== MUTATION RESULTS ==="
+          mutmut results || true

@@ -1,0 +1,18 @@
+name: Titan Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  evaluate:
+    name: Cryptographic Change Evaluation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: Rehanrana11/titan-gate@v1.0.0
+        with:
+          signing-key: ${{ secrets.TITAN_SIGNING_KEY }}

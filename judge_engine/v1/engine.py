@@ -28,14 +28,7 @@ def evaluate(artifact, scope, tenant_id, repo, repo_full_name,
     ss = st["structural_score"]
     sems = se["semantic_score"]
     comp = round(STRUCTURAL_WEIGHT * ss + SEMANTIC_WEIGHT * sems, 4)
-    if hv:
-        verdict = VERDICT_FAIL
-    elif comp >= SCORE_PASS:
-        verdict = VERDICT_PASS
-    elif comp >= SCORE_WARN:
-        verdict = VERDICT_WARN
-    else:
-        verdict = VERDICT_FAIL
+    verdict = classify(comp, hv)
     ah = hashlib.sha256(artifact.encode("utf-8")).hexdigest()
     sch = hashlib.sha256(str(sorted(scope.items())).encode("utf-8")).hexdigest()
     ph = hashlib.sha256((ah + sch).encode("utf-8")).hexdigest()
@@ -83,3 +76,13 @@ def evaluate(artifact, scope, tenant_id, repo, repo_full_name,
     receipt["receipt_hash"] = compute_receipt_hash(receipt)
     receipt["signature"] = compute_signature(receipt, key_hex)
     return receipt
+
+
+def classify(comp, hv):
+    if hv:
+        return VERDICT_FAIL
+    if comp >= SCORE_PASS:
+        return VERDICT_PASS
+    if comp >= SCORE_WARN:
+        return VERDICT_WARN
+    return VERDICT_FAIL

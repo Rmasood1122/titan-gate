@@ -1,0 +1,15 @@
+{
+  "schema": "anchor_v1",
+  "tenant_id": "other_tenant",
+  "repo_full_name": "other_tenant/repo",
+  "date": "2026-03-04",
+  "merkle_root": "99fd00d70057b3828c92f166523d345cf6bcba1db1436cab727a3fee3334e977",
+  "merkle_algorithm": "merkle_v1",
+  "receipt_count": 0,
+  "status": "promoted",
+  "anchored_at": null,
+  "promoted_at": "2026-03-05T11:01:16Z",
+  "payload_hash": "13069e38cc5d3eb8726f2f51251ff644ef501b57038596ddd4075e1b625a28d2",
+  "sealed_at": "2026-03-05T11:01:16Z",
+  "engine_version": "1.0.0"
+}

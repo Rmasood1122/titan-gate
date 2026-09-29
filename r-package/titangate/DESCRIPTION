@@ -1,0 +1,10 @@
+Package: titangate
+Title: Titan Gate Receipt Verifier
+Version: 1.0.0
+Authors@R: person('Rehan', 'Masood', email = 'rmasood524@gmail.com', role = c('aut', 'cre'))
+Description: Verify Titan Gate cryptographic receipts from R. Wraps the titan-verify CLI.
+License: Apache License (>= 2)
+Encoding: UTF-8
+RoxygenNote: 7.0.0
+Suggests: testthat (>= 3.0.0)
+SystemRequirements: Python (>= 3.9), titan-gate CLI (pip install titan-gate)

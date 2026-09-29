@@ -1,0 +1,3 @@
+tsa=freetsa
+root_hex=4933083c6ced22f47e00238703dd4a17e02bc5398035601c2ddf03eaf1a9fbbb
+captured over the production Merkle root already anchored in Rekor (log_index 2239591431) - second leg over the SAME root, per FR-RCP-2.

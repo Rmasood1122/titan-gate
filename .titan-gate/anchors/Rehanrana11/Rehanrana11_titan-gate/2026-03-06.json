@@ -1,0 +1,16 @@
+{
+  "anchored_at": 1786028105,
+  "date": "2026-03-06",
+  "engine_version": "1.0.0",
+  "merkle_algorithm": "merkle_v1",
+  "merkle_root": "4933083c6ced22f47e00238703dd4a17e02bc5398035601c2ddf03eaf1a9fbbb",
+  "payload_hash": "82fe44af0cd8afb786bf691e7792944e988f8288dae249923464b3a06003d94c",
+  "promoted_at": "2026-08-06T14:55:04Z",
+  "receipt_count": 1,
+  "rekor_record_path": "C:\\Users\\rmaso\\Projects\\titan-gate\\.titan-gate\\anchors\\Rehanrana11\\Rehanrana11_titan-gate\\anchor_4933083c6ced22f4.json",
+  "repo_full_name": "Rehanrana11/titan-gate",
+  "schema": "anchor_v1",
+  "sealed_at": "2026-08-06T14:55:04Z",
+  "status": "anchored",
+  "tenant_id": "Rehanrana11"
+}

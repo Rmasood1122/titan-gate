@@ -42,10 +42,24 @@ SAMPLE_RECEIPT = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Signing version
+# ---------------------------------------------------------------------------
+
 class TestSigningVersion(unittest.TestCase):
     def test_signing_version_value(self):
         self.assertEqual(SIGNING_VERSION, "hmac-sha256-v1")
 
+    def test_signing_version_is_string(self):
+        self.assertIsInstance(SIGNING_VERSION, str)
+
+    def test_signing_version_not_empty(self):
+        self.assertGreater(len(SIGNING_VERSION), 0)
+
+
+# ---------------------------------------------------------------------------
+# Exclusion fields
+# ---------------------------------------------------------------------------
 
 class TestExclusionFields(unittest.TestCase):
     def test_signature_excluded(self):
@@ -60,9 +74,28 @@ class TestExclusionFields(unittest.TestCase):
     def test_meta_excluded(self):
         self.assertIn("_meta", EXCLUSION_FIELDS)
 
-    def test_receipt_hash_not_excluded(self):
+    def test_receipt_hash_excluded(self):
         self.assertIn("receipt_hash", EXCLUSION_FIELDS)
 
+    def test_exclusion_fields_is_set_or_collection(self):
+        self.assertTrue(hasattr(EXCLUSION_FIELDS, "__contains__"))
+
+    def test_tenant_id_not_excluded(self):
+        self.assertNotIn("tenant_id", EXCLUSION_FIELDS)
+
+    def test_verdict_not_excluded(self):
+        self.assertNotIn("verdict", EXCLUSION_FIELDS)
+
+    def test_composite_score_not_excluded(self):
+        self.assertNotIn("composite_score", EXCLUSION_FIELDS)
+
+    def test_prev_receipt_hash_not_excluded(self):
+        self.assertNotIn("prev_receipt_hash", EXCLUSION_FIELDS)
+
+
+# ---------------------------------------------------------------------------
+# Canonical bytes
+# ---------------------------------------------------------------------------
 
 class TestCanonicalBytes(unittest.TestCase):
     def test_returns_bytes(self):
@@ -96,6 +129,66 @@ class TestCanonicalBytes(unittest.TestCase):
         parsed = json.loads(cb)
         self.assertEqual(parsed["a"], 1)
 
+    def test_excludes_receipt_hash(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["receipt_hash"] = "fakehash123"
+        cb = canonical_bytes(receipt)
+        self.assertNotIn(b"fakehash123", cb)
+
+    def test_excludes_debug_field(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["_debug"] = "debugvalue"
+        cb = canonical_bytes(receipt)
+        self.assertNotIn(b"debugvalue", cb)
+
+    def test_excludes_meta_field(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["_meta"] = "metavalue"
+        cb = canonical_bytes(receipt)
+        self.assertNotIn(b"metavalue", cb)
+
+    def test_includes_tenant_id(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        cb = canonical_bytes(receipt)
+        self.assertIn(b"tenant_test", cb)
+
+    def test_includes_verdict(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        cb = canonical_bytes(receipt)
+        self.assertIn(b"PASS", cb)
+
+    def test_includes_prev_receipt_hash(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        cb = canonical_bytes(receipt)
+        self.assertIn(b"GENESIS", cb)
+
+    def test_changes_on_field_change(self):
+        r1 = dict(SAMPLE_RECEIPT)
+        r2 = dict(SAMPLE_RECEIPT)
+        r2["verdict"] = "FAIL"
+        self.assertNotEqual(canonical_bytes(r1), canonical_bytes(r2))
+
+    def test_unicode_values_handled(self):
+        receipt = {"key": "tëñànt"}
+        cb = canonical_bytes(receipt)
+        self.assertIsInstance(cb, bytes)
+
+    def test_is_valid_json(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        cb = canonical_bytes(receipt)
+        parsed = json.loads(cb)
+        self.assertIsInstance(parsed, dict)
+
+    def test_compact_separators(self):
+        receipt = {"a": 1}
+        cb = canonical_bytes(receipt)
+        self.assertNotIn(b": ", cb)
+        self.assertNotIn(b", ", cb)
+
+
+# ---------------------------------------------------------------------------
+# Compute receipt hash
+# ---------------------------------------------------------------------------
 
 class TestComputeReceiptHash(unittest.TestCase):
     def test_returns_hex_string(self):
@@ -125,6 +218,39 @@ class TestComputeReceiptHash(unittest.TestCase):
         expected = hashlib.sha256(cb).hexdigest()
         self.assertEqual(compute_receipt_hash(receipt), expected)
 
+    def test_is_hex(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        h = compute_receipt_hash(receipt)
+        self.assertTrue(all(c in "0123456789abcdef" for c in h))
+
+    def test_changes_on_tenant_change(self):
+        r1 = dict(SAMPLE_RECEIPT)
+        r2 = dict(SAMPLE_RECEIPT)
+        r2["tenant_id"] = "other-tenant"
+        self.assertNotEqual(compute_receipt_hash(r1), compute_receipt_hash(r2))
+
+    def test_changes_on_score_change(self):
+        r1 = dict(SAMPLE_RECEIPT)
+        r2 = dict(SAMPLE_RECEIPT)
+        r2["composite_score"] = 0.1
+        self.assertNotEqual(compute_receipt_hash(r1), compute_receipt_hash(r2))
+
+    def test_signature_field_excluded_from_hash(self):
+        r1 = dict(SAMPLE_RECEIPT)
+        r2 = dict(SAMPLE_RECEIPT)
+        r2["signature"] = "fakesig"
+        self.assertEqual(compute_receipt_hash(r1), compute_receipt_hash(r2))
+
+    def test_receipt_hash_field_excluded_from_hash(self):
+        r1 = dict(SAMPLE_RECEIPT)
+        r2 = dict(SAMPLE_RECEIPT)
+        r2["receipt_hash"] = "fakehash"
+        self.assertEqual(compute_receipt_hash(r1), compute_receipt_hash(r2))
+
+
+# ---------------------------------------------------------------------------
+# Compute signature
+# ---------------------------------------------------------------------------
 
 class TestComputeSignature(unittest.TestCase):
     def test_returns_hex_string(self):
@@ -162,6 +288,45 @@ class TestComputeSignature(unittest.TestCase):
             compute_signature(receipt, key2)
         )
 
+    def test_is_hex(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        sig = compute_signature(receipt, TEST_KEY)
+        self.assertTrue(all(c in "0123456789abcdef" for c in sig))
+
+    def test_matches_hmac_sha256(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        cb = canonical_bytes(receipt)
+        key_bytes = bytes.fromhex(TEST_KEY)
+        expected = hmac.new(key_bytes, cb, hashlib.sha256).hexdigest()
+        self.assertEqual(compute_signature(receipt, TEST_KEY), expected)
+
+    def test_different_keys_different_sigs(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        sigs = set()
+        for i in range(4):
+            key = str(i) * 64
+            sigs.add(compute_signature(receipt, key))
+        self.assertEqual(len(sigs), 4)
+
+    def test_signature_not_equal_to_receipt_hash(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        sig = compute_signature(receipt, TEST_KEY)
+        h = compute_receipt_hash(receipt)
+        self.assertNotEqual(sig, h)
+
+    def test_changes_on_composite_score_change(self):
+        r1 = dict(SAMPLE_RECEIPT)
+        r2 = dict(SAMPLE_RECEIPT)
+        r2["composite_score"] = 0.0
+        self.assertNotEqual(
+            compute_signature(r1, TEST_KEY),
+            compute_signature(r2, TEST_KEY)
+        )
+
+
+# ---------------------------------------------------------------------------
+# Verify signature
+# ---------------------------------------------------------------------------
 
 class TestVerifySignature(unittest.TestCase):
     def test_valid_signature(self):
@@ -189,6 +354,61 @@ class TestVerifySignature(unittest.TestCase):
         receipt["signature"] = compute_signature(receipt, TEST_KEY)
         wrong_key = "f" * 64
         self.assertFalse(verify_signature(receipt, wrong_key))
+
+    def test_returns_bool(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["signature"] = compute_signature(receipt, TEST_KEY)
+        result = verify_signature(receipt, TEST_KEY)
+        self.assertIsInstance(result, bool)
+
+    def test_tampered_tenant_id_fails(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["signature"] = compute_signature(receipt, TEST_KEY)
+        receipt["tenant_id"] = "evil"
+        self.assertFalse(verify_signature(receipt, TEST_KEY))
+
+    def test_tampered_composite_score_fails(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["signature"] = compute_signature(receipt, TEST_KEY)
+        receipt["composite_score"] = 0.0
+        self.assertFalse(verify_signature(receipt, TEST_KEY))
+
+    def test_tampered_prev_receipt_hash_fails(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["signature"] = compute_signature(receipt, TEST_KEY)
+        receipt["prev_receipt_hash"] = "0" * 64
+        self.assertFalse(verify_signature(receipt, TEST_KEY))
+
+    def test_empty_signature_fails(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["signature"] = ""
+        self.assertFalse(verify_signature(receipt, TEST_KEY))
+
+    def test_correct_key_after_wrong_key(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["signature"] = compute_signature(receipt, TEST_KEY)
+        self.assertFalse(verify_signature(receipt, "f" * 64))
+        self.assertTrue(verify_signature(receipt, TEST_KEY))
+
+    def test_warn_verdict_verifies(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["verdict"] = "WARN"
+        receipt["composite_score"] = 0.55
+        receipt["signature"] = compute_signature(receipt, TEST_KEY)
+        self.assertTrue(verify_signature(receipt, TEST_KEY))
+
+    def test_fail_verdict_verifies(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["verdict"] = "FAIL"
+        receipt["composite_score"] = 0.2
+        receipt["signature"] = compute_signature(receipt, TEST_KEY)
+        self.assertTrue(verify_signature(receipt, TEST_KEY))
+
+    def test_chained_receipt_verifies(self):
+        receipt = dict(SAMPLE_RECEIPT)
+        receipt["prev_receipt_hash"] = "e" * 64
+        receipt["signature"] = compute_signature(receipt, TEST_KEY)
+        self.assertTrue(verify_signature(receipt, TEST_KEY))
 
 
 if __name__ == "__main__":

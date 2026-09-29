@@ -1,0 +1,9 @@
+git add action.yml scripts/ci_evaluate.py
+git commit -m "ci: add action.yml and fix ci_evaluate.py syntax error
+
+- action.yml: installable as uses: Rehanrana11/titan-gate@v1
+- Exposes verdict, score, receipt-id, receipt-hash as outputs
+- Uploads receipt.json as workflow artifact (90 day retention)
+- Optional fail-on-violations gate
+- Fixed extra brace in ci_evaluate.py post_pr_comment"
+git push origin main

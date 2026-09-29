@@ -25,7 +25,6 @@ class EvaluateRequest(BaseModel):
     base_branch: str
     commit_sha: str
     scope: Dict[str, Any] = {}
-    prev_receipt_hash: str = "GENESIS"
 
 
 class EvaluateResponse(BaseModel):
@@ -76,7 +75,7 @@ def evaluate_artifact(request: EvaluateRequest):
         base_branch=request.base_branch,
         commit_sha=request.commit_sha,
         key_hex=key,
-        prev_receipt_hash=request.prev_receipt_hash,
+        prev_receipt_hash="UNCHAINED",
     )
     return receipt
 

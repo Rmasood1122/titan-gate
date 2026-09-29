@@ -1,0 +1,3 @@
+{"id": 1, "date": "2026-08-17", "question": "how many tests does pytest report at repo ROOT, not tests/?", "prediction": "851", "actual": "858 collected: 1 failed, 856 passed, 1 skipped", "surprised": true}
+{"id": 2, "date": "2026-08-17", "question": "is the citation_domains discard deliberate or accidental?", "prediction": "deliberate", "actual": "", "surprised": null}
+{"id": 3, "date": "2026-08-17", "question": "titan-gate passed-count after removing the aivis tests?", "prediction": "848", "actual": "<the number>", "surprised": true}

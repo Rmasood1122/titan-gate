@@ -1,0 +1,15 @@
+{
+  "schema": "anchor_v1",
+  "tenant_id": "tenant_test",
+  "repo_full_name": "tenant_test/test-repo",
+  "date": "2026-03-04",
+  "merkle_root": "99fd00d70057b3828c92f166523d345cf6bcba1db1436cab727a3fee3334e977",
+  "merkle_algorithm": "merkle_v1",
+  "receipt_count": 0,
+  "status": "promoted",
+  "anchored_at": null,
+  "promoted_at": "2026-03-05T11:01:16Z",
+  "payload_hash": "28e0cb2553b28a33d6770e38976c0157a68c12456f4cf2342ba0a0ef9899db13",
+  "sealed_at": "2026-03-05T11:01:16Z",
+  "engine_version": "1.0.0"
+}

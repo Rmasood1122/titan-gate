@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 1 2,5,8,11 *"   # quarterly probe_24 (STRATEGY_DELTA D3)
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install pinned deps (fresh env, no laptop pollution)
+        run: |
+          pip install -r requirements.txt
+          pip install pytest-cov pip-audit
+      - name: Full suite
+        run: python -m pytest -q --continue-on-collection-errors
+      - name: Golden pins (legacy byte-freeze)
+        run: python -m pytest -q -k "golden or wo34"
+      - name: Coverage floor (65 — raise after subprocess instrumentation, Tier 2)
+        run: python -m pytest -q --cov=titan_gate --cov-fail-under=65
+      - name: Dependency audit (project deps only)
+        run: pip-audit -r requirements.txt
+      - name: Adversarial battery (scheduled/manual per D3)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python probe_24.py
