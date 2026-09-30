@@ -15,3 +15,4 @@ mutants/
 .mutmut_cache
 html/
 demo_kit*/
+evals/candidate.json

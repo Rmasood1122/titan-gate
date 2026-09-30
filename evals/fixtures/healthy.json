@@ -1,0 +1,11 @@
+{
+  "manifest": {
+    "schema": "candidate/v2",
+    "registry_hash": "951360cf2da0a975aee3bd48d1cb9ddb4456414cdc8a884f63f2f4d7892744ef",
+    "dataset_hash": "07961290ddb8e08450ceb006e1f517e2016365437fb43632c4911be933b0e2f8"
+  },
+  "scores": {
+    "probe_verdict_match_rate": 1.0,
+    "chain_2k_verify_s": 0.39
+  }
+}

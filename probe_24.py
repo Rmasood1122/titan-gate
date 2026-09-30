@@ -196,3 +196,14 @@ c = {}
 for _,_,_,v,_ in R: c[v] = c.get(v,0)+1
 print("VERDICTS: " + "  ".join(f"{k}:{v}" for k,v in sorted(c.items())))
 print("Any FAIL or ERROR above is a claims-discipline incident: investigate before any external conversation.")
+
+# Machine-readable output for the release gate (evals/run_evals.py).
+# Console output above is unchanged; the JSON is written ONLY when the
+# TITAN_PROBE_JSON env var names a path.
+_json_out = os.environ.get("TITAN_PROBE_JSON")
+if _json_out:
+    with open(_json_out, "w", encoding="utf-8") as _f:
+        json.dump([{"probe": n, "ref": ref, "name": name,
+                    "verdict": v, "note": note}
+                   for n, ref, name, v, note in R], _f, indent=2)
+    print(f"probe JSON written -> {_json_out}")

@@ -1,0 +1,38 @@
+name: eval-gate
+# titan-gate release gate (eval-conductor consumer).
+# Runs the 24-probe adversarial battery on EVERY push and PR — it was
+# quarterly-only before, and its FAIL verdicts never failed CI.
+# Doctrine: never pipe a gating command's output on the same line as anything
+# that consumes its exit code; every gate step reads the exit code directly.
+on:
+  push:
+  pull_request:
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt pyyaml
+      - name: Registry schema lint (hard block)
+        run: python3 evals/tools/registry_lint.py evals/registry.yaml
+      - name: Produce candidate (run the 24-probe battery, match sealed verdicts)
+        run: python3 evals/run_evals.py
+      - name: Gate (candidate vs baseline)
+        run: python3 evals/tools/promote.py
+      - name: Seen-it-fire — every hard gate proven to BLOCK
+        run: python3 evals/fixtures/verify_block_fixtures.py
+      - name: Live-fire — corrupted expectations seal must BLOCK end to end
+        run: |
+          python3 evals/run_evals.py --sabotage expectations --out /tmp/sabotage_candidate.json
+          set +e
+          python3 evals/tools/promote.py --candidate /tmp/sabotage_candidate.json
+          code=$?
+          set -e
+          if [ "$code" -ne 1 ]; then
+            echo "FATAL: sabotaged candidate got exit $code, want 1 (BLOCK) — gate is decoration"
+            exit 1
+          fi
+          echo "gate BLOCKED the sabotaged run (exit 1) — proven live on this commit"

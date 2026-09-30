@@ -1,0 +1,34 @@
+# SEALED probe-verdict expectations — titan-gate release gate.
+# Sealed 2026-09-29 from a live probe_24.py run at commit 755d60c.
+# The gate (evals/run_evals.py) hard-blocks unless every probe P01..P23
+# reports EXACTLY its sealed verdict:
+#   - a PROVEN capability regressing (FAIL/ERROR)      -> BLOCK
+#   - a NOT-BUILT gap silently becoming built           -> BLOCK
+#     (building it is fine — update this seal in the SAME reviewed
+#      commit; absence is recorded, not implied, per probe_24 doctrine)
+# P24 is timing-dependent (PROVEN/CHECK flips on runner speed) and is
+# deliberately NOT sealed; its measured seconds feed chain_2k_verify_s.
+expectations:
+  P01: PROVEN   # KEY-01/AT-11 — Forged receipt (attacker key) rejected
+  P02: PROVEN   # RCP-01/AT-15 — Single-byte body tamper detected
+  P03: PROVEN   # FR-VER-1/AT-18 — Receipt deletion detected (tree walk)
+  P04: PROVEN   # FR-VER-1 — Reorder detected in claimed-order walk
+  P05: PROVEN   # trs2_writer — Mid-chain GENESIS splice rejected per-receipt
+  P06: PROVEN   # SPEC-2 §1.3 — Canonicalization-steering (profile flip) named
+  P07: PROVEN   # TDD §2.4 — 6962 node-as-leaf second-preimage rejected
+  P08: PROVEN   # SPEC-2 §3.2 — JCS UTF-16 key order (non-BMP) correct
+  P09: PROVEN   # RCP-03/AT-17 — Payload smuggling (any name, any level) rejected
+  P10: PROVEN   # KEY-03/NG-04 — Vendor cannot originate outcomes (constant true)
+  P11: PROVEN   # FR-VER-1 — Correctly-signed schema violation still FAILS
+  P12: PROVEN   # SPEC-2 §2.5 — Non-canonical digest forms rejected
+  P13: PROVEN   # FR-KEY-1 — Core writer source: no signing capability
+  P14: PROVEN   # FR-KEY-1 — Evidence-core package holds no key env access
+  P15: LIMITATION   # G1 legacy — HMAC verify-implies-forge (TRS-1 legacy only)
+  P16: NOT-BUILT   # WO-6/ING-01 — Production ingest emits TRS-2
+  P17: NOT-BUILT   # WO-8/RPT-01 — Bundles carry chain (prev preserved)
+  P18: CHECK   # WO-4.2/RCP-02 — Rekor submission client
+  P19: NOT-BUILT   # WO-5/RCP-02 — RFC 3161 / eIDAS timestamp leg
+  P20: CHECK   # WO-7/KEY-01 — Customer-key separation at runtime
+  P21: NOT-BUILT   # ING-03/FR-ING-6 — Gap receipts / source health
+  P22: NOT-BUILT   # IDB-01/FR-IDB-1 — Identity resolution (agent registry)
+  P23: NOT-BUILT   # RET-01/FR-EVD-4 — Retention floor / legal hold

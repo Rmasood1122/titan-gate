@@ -1,0 +1,31 @@
+# ============================================================
+# METRIC REGISTRY — titan-gate release gate (eval-conductor consumer).
+# Adapter: evals/run_evals.py, which runs the 24-probe adversarial
+# battery (probe_24.py) on every push — previously quarterly-only,
+# and its FAIL verdicts never failed CI (probe_24 always exits 0).
+# Rule: never edit a threshold to turn a red gate green — that decision
+# belongs in a reviewed PR with a written justification. The sealed
+# verdicts live in evals/probe_expectations.yaml under the same rule.
+# ============================================================
+
+- name: probe_verdict_match_rate   # P01..P23 exactly equal the sealed verdicts
+  level: L2                        # (evals/probe_expectations.yaml, sealed 2026-09-29)
+  pillar: safety                   # regressions AND silently-built gaps both block
+  method: programmatic
+  detects: [FM-CLAIMS-DRIFT]
+  direction: higher_better
+  threshold: 1.0
+  noise_band: 0.0
+  blocking: hard
+  online: false
+
+- name: chain_2k_verify_s          # measured seconds of P24's 2k-receipt full verify
+  level: L5                        # budget from first measurement 2026-09-29:
+  pillar: ops                      # 0.41s local; 2.0s = ~5x headroom for CI runners
+  method: programmatic             # (AT bar: <5s per 10k => ~1s per 2k linear)
+  detects: [FM-LATENCY]
+  direction: lower_better
+  threshold: 2.0
+  noise_band: 0.5
+  blocking: soft
+  online: false
